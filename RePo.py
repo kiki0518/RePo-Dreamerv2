@@ -5,7 +5,7 @@ from torch.distributions import kl_divergence
 import tools
 import models
 import exploration as expl
-
+from dreamer import Dreamer
 
 class RePoWorldModel(models.WorldModel):
     """WorldModel with RePo-style KL constraint via dual variable beta."""
@@ -26,7 +26,7 @@ class RePoWorldModel(models.WorldModel):
         )
         # RePo specific settings
         self._target_kl = config.target_kl
-        # 平衡 prior / posterior KL 的權重（對應論文的 α）
+        # balance the prior and posterior KL weights (corresponds to α in the paper)
         self._kl_balance = config.prior_train_steps / (1 + config.prior_train_steps)
 
     def _train(self, data):
@@ -36,11 +36,11 @@ class RePoWorldModel(models.WorldModel):
                 embed = self.encoder(data)
                 post, prior = self.dynamics.observe(embed, data['action'])
 
-                # 分別計算「訓練 prior」與「訓練 posterior」的 KL
+                # seperatly compute KL for training prior and posterior
                 dist_post = self.dynamics.get_dist(post)
                 dist_prior = self.dynamics.get_dist(prior)
-                kl_prior = kl_divergence(dist_post.detach(), dist_prior)     # 更新 prior
-                kl_post = kl_divergence(dist_post, dist_prior.detach())     # 更新 posterior
+                kl_prior = kl_divergence(dist_post.detach(), dist_prior)     # update prior
+                kl_post = kl_divergence(dist_post, dist_prior.detach())     # update posterior
                 kl_mix = self._kl_balance * kl_prior + (1 - self._kl_balance) * kl_post
                 kl_value = kl_mix.mean()  # scalar for constraint
 
@@ -61,10 +61,10 @@ class RePoWorldModel(models.WorldModel):
 
                 model_loss = sum(losses.values()) + kl_loss
 
-            # 先更新 world model
+            # update world model parameters first
             model_metrics = self._model_opt(model_loss, self.parameters())
 
-            # 再更新 dual variable beta
+            # then update the dual variable beta
             beta_loss = -self._log_beta * kl_violation.detach()
             beta_metrics = self._beta_opt(beta_loss)
 
@@ -91,15 +91,15 @@ class RePoWorldModel(models.WorldModel):
         return post, context, metrics
 
 
-class RePo(models.Dreamer):
+class RePo(Dreamer):
     """Dreamer agent variant that swaps WorldModel to RePoWorldModel."""
 
     def __init__(self, config, logger, dataset):
         super().__init__(config, logger, dataset)
-        # 替換成 RePoWorldModel
+        # replace WorldModel with RePoWorldModel
         self._wm = RePoWorldModel(self._step, config).to(config.device)
 
-        # 重新建立行為模組（因為之前用的是舊的 wm）
+        # re-initialize task behavior(since the previous one used the old wm)
         self._task_behavior = models.ImagBehavior(
             config, self._wm, config.behavior_stop_grad
         )
