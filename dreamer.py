@@ -46,7 +46,7 @@ class Dreamer(nn.Module):
     config.imag_gradient_mix = (
         lambda x=config.imag_gradient_mix: tools.schedule(x, self._step))
     self._dataset = dataset
-    self._wm = models.WorldModel(self._step, config)
+    self._wm = models.WorldModel(self._step, config) # need to modify
     self._task_behavior = models.ImagBehavior(
         config, self._wm, config.behavior_stop_grad)
     reward = lambda f, s, a: self._wm.heads['reward'](f).mean

@@ -82,6 +82,9 @@ class Logger:
       if np.issubdtype(value.dtype, np.floating):
         value = np.clip(255 * value, 0, 255).astype(np.uint8)
       B, T, H, W, C = value.shape
+      if C == 1:
+        value = np.repeat(value, 3, axis=-1)
+        C = 3
       value = value.transpose(1, 4, 2, 0, 3).reshape((1, T, C, H, B*W))
       self._writer.add_video(name, value, self.step, 16)
 
