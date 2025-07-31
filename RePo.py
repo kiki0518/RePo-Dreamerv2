@@ -31,6 +31,7 @@ class RePoWorldModel(models.WorldModel):
 
     def _train(self, data):
         data = self.preprocess(data)
+        
         with tools.RequiresGrad(self):
             with torch.cuda.amp.autocast(self._use_amp):
                 embed = self.encoder(data)
@@ -39,7 +40,7 @@ class RePoWorldModel(models.WorldModel):
                 # seperatly compute KL for training prior and posterior
                 dist_post = self.dynamics.get_dist(post)
                 dist_prior = self.dynamics.get_dist(prior)
-                kl_prior = kl_divergence(dist_post.detach(), dist_prior)     # update prior
+                kl_prior = kl_divergence(dist_post.detach(), dist_prior)    # update prior
                 kl_post = kl_divergence(dist_post, dist_prior.detach())     # update posterior
                 kl_mix = self._kl_balance * kl_prior + (1 - self._kl_balance) * kl_post
                 kl_value = kl_mix.mean()  # scalar for constraint
@@ -51,7 +52,8 @@ class RePoWorldModel(models.WorldModel):
                 losses = {}
                 likes = {}
                 for name, head in self.heads.items():
-                    grad_head = name in self._config.grad_heads
+                    grad_head = (name in self._config.grad_heads) and name != 'image'
+                    # observation loss needs to be detached
                     feat = self.dynamics.get_feat(post)
                     feat = feat if grad_head else feat.detach()
                     pred = head(feat)
