@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch.distributions import kl_divergence
+from torch.distributions import kl_divergence, Categorical
 
 import tools
 import models
@@ -12,11 +12,9 @@ class RePoWorldModel(models.WorldModel):
 
     def __init__(self, step, config):
         super().__init__(step, config)
-        # Dual variable (log-space)
         self._log_beta = nn.Parameter(
             torch.tensor(float(config.init_beta)).log()
         )
-        # Beta optimizer
         self._beta_opt = tools.Optimizer(
             'beta', [self._log_beta],
             config.beta_lr, config.opt_eps,
@@ -24,7 +22,6 @@ class RePoWorldModel(models.WorldModel):
             opt=config.opt,
             use_amp=self._use_amp,
         )
-        # RePo specific settings
         self._target_kl = config.target_kl
         # balance the prior and posterior KL weights (corresponds to α in the paper)
         self._kl_balance = config.prior_train_steps / (1 + config.prior_train_steps)
@@ -38,14 +35,12 @@ class RePoWorldModel(models.WorldModel):
                 post, prior = self.dynamics.observe(embed, data['action'])
 
                 # seperatly compute KL for training prior and posterior
-                dist_post = self.dynamics.get_dist(post)
-                dist_prior = self.dynamics.get_dist(prior)
-                kl_prior = kl_divergence(dist_post.detach(), dist_prior)    # update prior
-                kl_post = kl_divergence(dist_post, dist_prior.detach())     # update posterior
-                kl_mix = self._kl_balance * kl_prior + (1 - self._kl_balance) * kl_post
-                kl_value = kl_mix.mean()  # scalar for constraint
-
-                # RePo KL constraint: L_kl = beta * (KL - target)
+                dist_post = Categorical(probs=post['probs'])
+                dist_prior = Categorical(probs=prior['probs'])
+                kl_prior = kl_divergence(dist_post.detach(), dist_prior).mean((0, 1))
+                kl_post = kl_divergence(dist_post, dist_prior.detach()).mean((0, 1))
+                kl_alpha = self._config.prior_train_steps / (1 + self._config.prior_train_steps)
+                kl_value = kl_alpha * kl_prior + (1 - kl_alpha) * kl_post
                 kl_violation = kl_value - self._target_kl
                 kl_loss = self._log_beta.exp().detach() * kl_violation
 
@@ -68,12 +63,15 @@ class RePoWorldModel(models.WorldModel):
 
             # then update the dual variable beta
             beta_loss = -self._log_beta * kl_violation.detach()
-            beta_metrics = self._beta_opt(beta_loss)
+            # beta_metrics = self._beta_opt(beta_loss)
+            self._beta_opt.zero_grad()
+            beta_loss.backward()
+            self._beta_opt.step()
 
         metrics = {}
         metrics.update({f'{k}_loss': tools.to_np(v) for k, v in losses.items()})
         metrics.update(model_metrics)
-        metrics.update(beta_metrics)
+        # metrics.update(beta_metrics)
         metrics['kl'] = tools.to_np(kl_value)
         metrics['kl_violation'] = tools.to_np(kl_violation)
         metrics['beta'] = tools.to_np(self._log_beta.exp())
@@ -86,7 +84,7 @@ class RePoWorldModel(models.WorldModel):
         context = dict(
             embed=embed,
             feat=self.dynamics.get_feat(post),
-            kl=kl_mix,
+            kl=kl_value,
             postent=self.dynamics.get_dist(post).entropy(),
         )
         post = {k: v.detach() for k, v in post.items()}

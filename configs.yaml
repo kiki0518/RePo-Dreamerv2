@@ -15,6 +15,11 @@ defaults:
   precision: 16
   debug: False
   expl_gifs: False
+  
+  init_beta: 1.0
+  target_kl: 1.0
+  prior_train_steps: 100
+  beta_lr: 1e-4
 
   # Environment
   task: 'dmc_walker_walk'
