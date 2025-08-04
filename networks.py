@@ -130,11 +130,11 @@ class RSSM(nn.Module):
     return torch.cat([stoch, state['deter']], -1)
 
   def get_dist(self, state, dtype=None):
-    print('state keys:', state.keys())
-    print("self._discrete:", self._discrete)
+    # print('state keys:', state.keys())
+    # print("self._discrete:", self._discrete)
     if self._discrete:
       logit = state['logit']
-      print('state keys2:', state.keys())
+      # print('state keys2:', state.keys())
       dist = torchd.independent.Independent(tools.OneHotDist(logit), 1)
     else:
       mean, std = state['mean'], state['std']
