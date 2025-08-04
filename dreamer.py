@@ -279,7 +279,7 @@ def main(config):
   train_dataset = make_dataset(train_eps, config)
   eval_dataset = make_dataset(eval_eps, config)
   # agent = Dreamer(config, logger, train_dataset).to(config.device)
-  agent = RePo.repo(config, logger, train_dataset).to(config.device)  # RePo
+  agent = RePo.RePo(config, logger, train_dataset).to(config.device)  # RePo
   agent.requires_grad_(requires_grad=False)
   if (logdir / 'latest_model.pt').exists():
     agent.load_state_dict(torch.load(logdir / 'latest_model.pt'))
