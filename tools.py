@@ -474,6 +474,9 @@ class Optimizer():
   def zero_grad(self):
     self._opt.zero_grad()
 
+  def step(self):
+    self._opt.step()
+
   def __call__(self, loss, params, retain_graph=False):
     assert len(loss.shape) == 0, loss.shape
     metrics = {}
