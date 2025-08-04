@@ -41,8 +41,8 @@ class RePoWorldModel(models.WorldModel):
                 dist_post_detached = Categorical(logits=dist_post.logits.detach())
                 dist_prior_detached = Categorical(logits=dist_prior.logits.detach())
 
-                kl_prior = kl_divergence(dist_post_detached, dist_prior).mean((0, 1))
-                kl_post = kl_divergence(dist_post, dist_prior_detached).mean((0, 1))
+                kl_prior = kl_divergence(dist_post_detached, dist_prior).mean()
+                kl_post = kl_divergence(dist_post, dist_prior_detached).mean()
 
                 # kl_prior = kl_divergence(dist_post.detach(), dist_prior).mean((0, 1))
                 # kl_post = kl_divergence(dist_post, dist_prior.detach()).mean((0, 1))
