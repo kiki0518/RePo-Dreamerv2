@@ -37,8 +37,15 @@ class RePoWorldModel(models.WorldModel):
                 # seperatly compute KL for training prior and posterior
                 dist_post = Categorical(logits=post['logit'])
                 dist_prior = Categorical(logits=prior['logit'])
-                kl_prior = kl_divergence(dist_post.detach(), dist_prior).mean((0, 1))
-                kl_post = kl_divergence(dist_post, dist_prior.detach()).mean((0, 1))
+
+                dist_post_detached = Categorical(logits=dist_post.logits.detach())
+                dist_prior_detached = Categorical(logits=dist_prior.logits.detach())
+
+                kl_prior = kl_divergence(dist_post_detached, dist_prior).mean((0, 1))
+                kl_post = kl_divergence(dist_post, dist_prior_detached).mean((0, 1))
+                
+                # kl_prior = kl_divergence(dist_post.detach(), dist_prior).mean((0, 1))
+                # kl_post = kl_divergence(dist_post, dist_prior.detach()).mean((0, 1))
                 kl_alpha = self._config.prior_train_steps / (1 + self._config.prior_train_steps)
                 kl_value = kl_alpha * kl_prior + (1 - kl_alpha) * kl_post
                 kl_violation = kl_value - self._target_kl
