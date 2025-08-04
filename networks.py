@@ -12,7 +12,7 @@ class RSSM(nn.Module):
 
   def __init__(
       self, stoch=30, deter=200, hidden=200, layers_input=1, layers_output=1,
-      rec_depth=1, shared=False, discrete=False, act=nn.ELU,
+      rec_depth=1, shared=False, discrete=True, act=nn.ELU,
       mean_act='none', std_act='softplus', temp_post=True, min_std=0.1,
       cell='gru',
       num_actions=None, embed = None, device=None):
