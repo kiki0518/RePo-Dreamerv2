@@ -87,21 +87,12 @@ class RePoWorldModel(models.WorldModel):
         with torch.cuda.amp.autocast(self._use_amp):
             metrics['prior_ent'] = tools.to_np(self.dynamics.get_dist(prior).entropy().mean())
             metrics['post_ent'] = tools.to_np(self.dynamics.get_dist(post).entropy().mean())
-
-
-        post_dist = self.dynamics.get_dist(post)
-        postent = post_dist.entropy()
-        if not torch.isfinite(postent).all():
-            print('Bad entropy:', postent)
-            print('Logits:', post_dist.logits)
-            import pdb; pdb.set_trace()
-
-        context = dict(
-            embed=embed,
-            feat=self.dynamics.get_feat(post),
-            kl=kl_value,
-            postent=postent,
-        )
+            context = dict(
+                embed=embed,
+                feat=self.dynamics.get_feat(post),
+                kl=kl_value,
+                postent=tools.to_np(self.dynamics.get_dist(post).entropy()),
+            )
         post = {k: v.detach() for k, v in post.items()}
         return post, context, metrics
 

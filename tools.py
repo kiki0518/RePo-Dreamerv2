@@ -275,13 +275,9 @@ class OneHotDist(torchd.one_hot_categorical.OneHotCategorical):
 
   def __init__(self, logits=None, probs=None):
     if logits is not None:
-      # print("DEBUG: OneHotDist logits:", logits.shape)
-      # print("logits:", logits)
       if torch.isnan(logits).any() or torch.isinf(logits).any():
         raise ValueError('Logits contain NaN or Inf values.')
     if probs is not None:
-      # print("DEBUG: OneHotDist probs:", probs.shape)
-      # print("probs:", probs)
       if torch.isnan(probs).any() or torch.isinf(probs).any():
         raise ValueError('Probs contain NaN or Inf values.')
     super().__init__(logits=logits, probs=probs)
