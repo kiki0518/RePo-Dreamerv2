@@ -65,12 +65,6 @@ class RePoWorldModel(models.WorldModel):
 
                 model_loss = sum(losses.values()) + kl_loss
 
-            print("DEBUG: RePoWorldModel _train")
-            print('like.shape:', {k: v.shape for k,v in likes.items()})
-            print('losses.shape:', {k: v.shape for k,v in losses.items()})
-            print('kl_loss.shape:', kl_loss.shape)
-            print('model_loss.shape:', model_loss.shape)
-
             # update world model parameters first
             model_metrics = self._model_opt(model_loss, self.parameters())
 

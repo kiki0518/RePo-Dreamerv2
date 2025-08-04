@@ -470,6 +470,9 @@ class Optimizer():
                                 momentum=0.9),
     }[opt]()
     self._scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+  
+  def zero_grad(self):
+    self._opt.zero_grad()
 
   def __call__(self, loss, params, retain_graph=False):
     assert len(loss.shape) == 0, loss.shape
