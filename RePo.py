@@ -43,7 +43,7 @@ class RePoWorldModel(models.WorldModel):
 
                 kl_prior = kl_divergence(dist_post_detached, dist_prior).mean((0, 1))
                 kl_post = kl_divergence(dist_post, dist_prior_detached).mean((0, 1))
-                
+
                 # kl_prior = kl_divergence(dist_post.detach(), dist_prior).mean((0, 1))
                 # kl_post = kl_divergence(dist_post, dist_prior.detach()).mean((0, 1))
                 kl_alpha = self._config.prior_train_steps / (1 + self._config.prior_train_steps)
@@ -64,6 +64,12 @@ class RePoWorldModel(models.WorldModel):
                     losses[name] = -like.mean() * self._scales.get(name, 1.0)
 
                 model_loss = sum(losses.values()) + kl_loss
+
+            print("DEBUG: RePoWorldModel _train")
+            print('like.shape:', {k: v.shape for k,v in likes.items()})
+            print('losses.shape:', {k: v.shape for k,v in losses.items()})
+            print('kl_loss.shape:', kl_loss.shape)
+            print('model_loss.shape:', model_loss.shape)
 
             # update world model parameters first
             model_metrics = self._model_opt(model_loss, self.parameters())
