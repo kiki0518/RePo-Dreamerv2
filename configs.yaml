@@ -37,7 +37,7 @@ defaults:
   dyn_hidden: 200
   dyn_deter: 200
   dyn_stoch: 50
-  dyn_discrete: 0
+  dyn_discrete: 16
   dyn_input_layers: 1
   dyn_output_layers: 1
   dyn_rec_depth: 1
@@ -255,7 +255,7 @@ dmc:
   cnn_depth: 32
   dyn_deter: 200
   dyn_stoch: 50
-  dyn_discrete: 0
+  dyn_discrete: 16
   reward_layers: 2
   discount_layers: 3
   value_layers: 3
