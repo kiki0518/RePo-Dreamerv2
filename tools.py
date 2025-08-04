@@ -175,6 +175,8 @@ def save_episodes(directory, episodes):
     filenames.append(filename)
   return filenames
 
+def to_np(tensor):
+    return tensor.detach().cpu().numpy()
 
 def from_generator(generator, batch_size):
   while True:
