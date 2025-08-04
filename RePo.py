@@ -88,11 +88,19 @@ class RePoWorldModel(models.WorldModel):
             metrics['prior_ent'] = tools.to_np(self.dynamics.get_dist(prior).entropy().mean())
             metrics['post_ent'] = tools.to_np(self.dynamics.get_dist(post).entropy().mean())
 
+
+        post_dist = self.dynamics.get_dist(post)
+        postent = post_dist.entropy()
+        if not torch.isfinite(postent).all():
+            print('Bad entropy:', postent)
+            print('Logits:', post_dist.logits)
+            import pdb; pdb.set_trace()
+
         context = dict(
             embed=embed,
             feat=self.dynamics.get_feat(post),
             kl=kl_value,
-            postent=self.dynamics.get_dist(post).entropy(),
+            postent=postent,
         )
         post = {k: v.detach() for k, v in post.items()}
         return post, context, metrics
