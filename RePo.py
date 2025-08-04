@@ -35,8 +35,8 @@ class RePoWorldModel(models.WorldModel):
                 post, prior = self.dynamics.observe(embed, data['action'])
 
                 # seperatly compute KL for training prior and posterior
-                dist_post = Categorical(logit=post['logit'])
-                dist_prior = Categorical(logit=prior['logit'])
+                dist_post = Categorical(logits=post['logit'])
+                dist_prior = Categorical(logits=prior['logit'])
                 kl_prior = kl_divergence(dist_post.detach(), dist_prior).mean((0, 1))
                 kl_post = kl_divergence(dist_post, dist_prior.detach()).mean((0, 1))
                 kl_alpha = self._config.prior_train_steps / (1 + self._config.prior_train_steps)
