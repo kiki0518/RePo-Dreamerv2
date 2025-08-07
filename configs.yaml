@@ -16,9 +16,9 @@ defaults:
   debug: False
   expl_gifs: False
   
-  init_beta: 1.0
-  target_kl: 1.0
-  prior_train_steps: 100
+  init_beta: 1e-5
+  target_kl: 3.0
+  prior_train_steps: 5
   beta_lr: 1e-4
 
   # Environment

@@ -44,8 +44,6 @@ class RePoWorldModel(models.WorldModel):
                 kl_prior = kl_divergence(dist_post_detached, dist_prior).mean()
                 kl_post = kl_divergence(dist_post, dist_prior_detached).mean()
 
-                # kl_prior = kl_divergence(dist_post.detach(), dist_prior).mean((0, 1))
-                # kl_post = kl_divergence(dist_post, dist_prior.detach()).mean((0, 1))
                 kl_alpha = self._config.prior_train_steps / (1 + self._config.prior_train_steps)
                 kl_value = kl_alpha * kl_prior + (1 - kl_alpha) * kl_post
                 kl_violation = kl_value - self._target_kl
@@ -62,12 +60,10 @@ class RePoWorldModel(models.WorldModel):
                     like = pred.log_prob(data[name])
                     likes[name] = like
                     losses[name] = -like.mean() * self._scales.get(name, 1.0)
-
                 model_loss = sum(losses.values()) + kl_loss
 
             # update world model parameters first
             model_metrics = self._model_opt(model_loss, self.parameters())
-
             # then update the dual variable beta
             beta_loss = -self._log_beta * kl_violation.detach()
             # beta_metrics = self._beta_opt(beta_loss)
