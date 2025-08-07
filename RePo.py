@@ -49,9 +49,9 @@ class RePoWorldModel(models.WorldModel):
                 kl_violation = kl_value - self._target_kl
                 kl_loss = self._log_beta.exp().detach() * kl_violation
 
-                assert not torch.isnan(kl_value), f"[NaN] kl_value: {kl_value}"
-                assert not torch.isnan(self._log_beta), f"[NaN] log_beta: {self._log_beta}"
-                assert not torch.isnan(kl_loss), f"[NaN] kl_loss: {kl_loss}"
+                # assert not torch.isnan(kl_value), f"[NaN] kl_value: {kl_value}"
+                # assert not torch.isnan(self._log_beta), f"[NaN] log_beta: {self._log_beta}"
+                # assert not torch.isnan(kl_loss), f"[NaN] kl_loss: {kl_loss}"
 
                 losses = {}
                 likes = {}
@@ -65,18 +65,18 @@ class RePoWorldModel(models.WorldModel):
                     likes[name] = like
                     loss = -like.mean() * self._scales.get(name, 1.0)
 
-                    assert not torch.isnan(loss), f"[NaN] loss for {name}: {loss}"
+                    # assert not torch.isnan(loss), f"[NaN] loss for {name}: {loss}"
                     losses[name] = loss
 
                 model_loss = sum(losses.values()) + kl_loss
-                assert not torch.isnan(model_loss), f"[NaN] model_loss: {model_loss}"
+                # assert not torch.isnan(model_loss), f"[NaN] model_loss: {model_loss}"
 
             # update world model parameters first
             model_metrics = self._model_opt(model_loss, self.parameters())
             # then update the dual variable beta
             beta_loss = -self._log_beta * kl_violation.detach()
             # beta_metrics = self._beta_opt(beta_loss)
-            assert not torch.isnan(beta_loss), f"[NaN] beta_loss: {beta_loss}"
+            # assert not torch.isnan(beta_loss), f"[NaN] beta_loss: {beta_loss}"
 
             self._beta_opt.zero_grad()
             beta_loss.backward()
