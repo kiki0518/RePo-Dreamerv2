@@ -293,7 +293,7 @@ class OneHotDist(torchd.one_hot_categorical.OneHotCategorical):
     probs = super().probs
     while len(probs.shape) < len(sample.shape):
       probs = probs[None]
-    sample += probs - probs.detach()
+    sample += probs - probs.detach() # Straight Through method
     return sample
 
 
@@ -477,7 +477,7 @@ class Optimizer():
                                 lr=lr,
                                 momentum=0.9),
     }[opt]()
-    self._scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    self._scaler = torch.cuda.amp.GradScaler(enabled=use_amp) # 
   
   def zero_grad(self):
     self._opt.zero_grad()
