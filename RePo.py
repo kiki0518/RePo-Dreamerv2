@@ -5,6 +5,7 @@ from torch.distributions import kl_divergence, Categorical
 import tools
 import models
 import exploration as expl
+from torch import distributions as torchd
 from dreamer import Dreamer
 
 class RePoWorldModel(models.WorldModel):
@@ -35,11 +36,11 @@ class RePoWorldModel(models.WorldModel):
                 post, prior = self.dynamics.observe(embed, data['action'])
 
                 # seperatly compute KL for training prior and posterior
-                dist_post = Categorical(logits=post['logit'])
-                dist_prior = Categorical(logits=prior['logit'])
+                dist_post = torchd.independent.Independent(tools.OneHotDist(post["logit"]), 1)
+                dist_prior = torchd.independent.Independent(tools.OneHotDist(prior["logit"]), 1)
 
-                dist_post_detached = Categorical(logits=dist_post.logits.detach())
-                dist_prior_detached = Categorical(logits=dist_prior.logits.detach())
+                dist_post_detached = torchd.independent.Independent(tools.OneHotDist(dist_post.logits.detach()), 1)
+                dist_prior_detached = torchd.independent.Independent(tools.OneHotDist(dist_prior.logits.detach()), 1)
 
                 kl_prior = kl_divergence(dist_post_detached, dist_prior).mean()
                 kl_post = kl_divergence(dist_post, dist_prior_detached).mean()
