@@ -83,6 +83,12 @@ class RePoWorldModel(models.WorldModel):
             beta_loss.backward()
             self._beta_opt.step()
 
+            # Apply clipping to ensure beta <= 10
+            with torch.no_grad():
+                beta = self._log_beta.exp()
+                beta = torch.clamp(beta, max=10.0)
+                self._log_beta.data = torch.log(beta)
+
         metrics = {}
         metrics.update({f'{k}_loss': tools.to_np(v) for k, v in losses.items()})
         metrics.update(model_metrics)
