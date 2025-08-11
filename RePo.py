@@ -36,11 +36,11 @@ class RePoWorldModel(models.WorldModel):
                 post, prior = self.dynamics.observe(embed, data['action'])
 
                 # seperatly compute KL for training prior and posterior
-                dist_post = torchd.independent.Independent(tools.OneHotDist(post["logit"]), 1)
-                dist_prior = torchd.independent.Independent(tools.OneHotDist(prior["logit"]), 1)
+                dist_post = torchd.independent.Independent(tools.OneHotDist(logits = post["logit"]), 1)
+                dist_prior = torchd.independent.Independent(tools.OneHotDist(logits = prior["logit"]), 1)
 
-                dist_post_detached = torchd.independent.Independent(tools.OneHotDist(dist_post.logits.detach()), 1)
-                dist_prior_detached = torchd.independent.Independent(tools.OneHotDist(dist_prior.logits.detach()), 1)
+                dist_post_detached = torchd.independent.Independent(tools.OneHotDist(logits = dist_post.detach()), 1)
+                dist_prior_detached = torchd.independent.Independent(tools.OneHotDist(logits = dist_prior.detach()), 1)
 
                 kl_prior = kl_divergence(dist_post_detached, dist_prior).mean()
                 kl_post = kl_divergence(dist_post, dist_prior_detached).mean()
