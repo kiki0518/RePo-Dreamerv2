@@ -39,8 +39,8 @@ class RePoWorldModel(models.WorldModel):
                 dist_post = torchd.independent.Independent(tools.OneHotDist(logits = post["logit"]), 1)
                 dist_prior = torchd.independent.Independent(tools.OneHotDist(logits = prior["logit"]), 1)
 
-                dist_post_detached = torchd.independent.Independent(tools.OneHotDist(logits = dist_post.detach()), 1)
-                dist_prior_detached = torchd.independent.Independent(tools.OneHotDist(logits = dist_prior.detach()), 1)
+                dist_post_detached = torchd.independent.Independent(tools.OneHotDist(logits=dist_post.base_dist.logits.detach()), 1)
+                dist_prior_detached = torchd.independent.Independent(tools.OneHotDist(logits=dist_prior.base_dist.logits.detach()), 1)
 
                 kl_prior = kl_divergence(dist_post_detached, dist_prior).mean()
                 kl_post = kl_divergence(dist_post, dist_prior_detached).mean()
