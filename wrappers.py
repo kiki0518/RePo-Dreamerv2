@@ -207,13 +207,22 @@ class DeepMindControlNoisy(DeepMindControl):
         obs = dict(time_step.observation)
         img = self.render()
 
+        # the original method to replace the background
+        # if self._img_source is not None:
+        #     mask = np.logical_and(
+        #         (img[:, :, 2] > img[:, :, 1]),
+        #         (img[:, :, 2] > img[:, :, 0])
+        #     )
+        #     bg = self._bg_source.get_image()
+        #     img[mask] = bg[mask]
+
         if self._img_source is not None:
-            mask = np.logical_and(
-                (img[:, :, 2] > img[:, :, 1]),
-                (img[:, :, 2] > img[:, :, 0])
-            )
-            bg = self._bg_source.get_image()
-            img[mask] = bg[mask]
+          # build a mask to replace the background w/ the target color
+          target_color = np.array([45, 68, 90], dtype=np.uint8)
+          mask = np.all(img == target_color, axis=-1)  # shape (H, W)
+
+          bg = self._bg_source.get_image()
+          img[mask] = bg[mask]
 
         if self._noise_std > 0:
             img = img.astype(np.float32) + np.random.normal(

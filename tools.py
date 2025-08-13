@@ -156,14 +156,14 @@ def simulate(agent, envs, steps=0, episodes=0, state=None):
     length *= (1 - done)
 
     # Debugging: print the top-right and bottom-right pixel RGB values.
-    if step % 100 == 0:
-      img = obs[0]['image']
-      if img.shape[0] == 3: 
-        img = np.transpose(img, (1, 2, 0))
-      h, w, _ = img.shape
-      top_right = img[0, w-1]
-      bottom_right = img[h-1, w-1]
-      print(f"[Step {step}] Top-right RGB: {top_right}, Bottom-right RGB: {bottom_right}")
+    # if step % 5000 == 0:
+    #   img = obs[0]['image']
+    #   if img.shape[0] == 3: 
+    #     img = np.transpose(img, (1, 2, 0))
+    #   h, w, _ = img.shape
+    #   top_right = img[0, w-1]
+    #   bottom_right = img[h-1, w-1]
+    #   print(f"[Step {step}] Top-right RGB: {top_right}, Bottom-right RGB: {bottom_right}")
 
 
   return (step - steps, episode - episodes, done, length, obs, agent_state, reward)
