@@ -183,17 +183,17 @@ def make_env(config, logger, mode, train_eps, eval_eps):
     img_source = "video"
     resource_files = "../kinetics-downloader/dataset/train/driving_car/*.mp4"
 
-    # env = wrappers.DeepMindControl(task, config.action_repeat, config.size)
-    env = wrappers.DeepMindControlNoisy(
-        task,
-        config.action_repeat,
-        config.size,
-        img_source=img_source,
-        resource_files=resource_files,
-        total_frames=1000,
-        grayscale=True,
-        train_eps=train_eps,
-    )
+    env = wrappers.DeepMindControl(task, config.action_repeat, config.size)
+    # env = wrappers.DeepMindControlNoisy(
+    #     task,
+    #     config.action_repeat,
+    #     config.size,
+    #     img_source=img_source,
+    #     resource_files=resource_files,
+    #     total_frames=1000,
+    #     grayscale=True,
+    #     train_eps=train_eps,
+    # )
     env = wrappers.NormalizeActions(env)
 
 
