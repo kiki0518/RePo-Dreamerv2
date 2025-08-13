@@ -3,6 +3,8 @@ import threading
 import gym
 import numpy as np
 
+from gym import spaces
+
 
 class DeepMindLabyrinth(object):
 
@@ -162,6 +164,65 @@ class DeepMindControl:
       raise ValueError("Only render mode 'rgb_array' is supported.")
     return self._env.physics.render(*self._size, camera_id=self._camera)
 
+
+from utils import make_img_source  # RePo's background tool
+
+class DeepMindControlNoisy(DeepMindControl):
+    def __init__(self, *args, img_source=None, resource_files=None, total_frames=None,
+                 reset_bg=False, noise_std=0.0, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._img_source = img_source
+        self._reset_bg = reset_bg
+        self._noise_std = noise_std
+
+        if img_source is not None:
+            self._bg_source = make_img_source(
+                src_type=img_source,
+                img_shape=self._size,  # same as the original deepmind control size
+                resource_files=resource_files,
+                total_frames=total_frames,
+                grayscale=False,
+            )
+
+    def reset(self):
+        if self._img_source is not None and self._reset_bg:
+            self._bg_source.reset()
+        return super().reset()
+
+    def _get_obs(self, time_step):
+        """ copy the original _get_obs method and apply background and noise. """
+        obs = dict(time_step.observation)
+        img = self.render()
+
+        if self._img_source is not None:
+            mask = np.logical_and(
+                (img[:, :, 2] > img[:, :, 1]),
+                (img[:, :, 2] > img[:, :, 0])
+            )
+            bg = self._bg_source.get_image()
+            img[mask] = bg[mask]
+
+        if self._noise_std > 0:
+            img = img.astype(np.float32) + np.random.normal(
+                0, self._noise_std, img.shape
+            )
+            img = np.clip(img, 0, 255).astype(np.uint8)
+
+        obs['image'] = img
+        return obs
+
+    def step(self, action):
+        """ change the step method to use the new _get_obs """
+        reward = 0
+        for _ in range(self._action_repeat):
+            time_step = self._env.step(action)
+            reward += time_step.reward or 0
+            if time_step.last():
+                break
+        obs = self._get_obs(time_step)
+        done = time_step.last()
+        info = {'discount': np.array(time_step.discount, np.float32)}
+        return obs, reward, done, info
 
 class Atari:
 
