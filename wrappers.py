@@ -169,8 +169,21 @@ from utils import make_img_source  # RePo's background tool
 
 class DeepMindControlNoisy(DeepMindControl):
     def __init__(self, *args, img_source=None, resource_files=None, total_frames=None,
-                 reset_bg=False, noise_std=0.0, **kwargs):
+                 reset_bg=False, grayscale=False, train_eps=0, noise_std=0.0, **kwargs):
         super().__init__(*args, **kwargs)
+
+        """
+        env = wrappers.DeepMindControlNoisy(
+        task,
+        config.action_repeat,
+        config.size,
+        img_source=img_source,
+        resource_files=resource_files,
+        total_frames=1000,
+        grayscale=config.grayscale,
+        train_eps=train_eps,
+        )
+        """
         self._img_source = img_source
         self._reset_bg = reset_bg
         self._noise_std = noise_std
