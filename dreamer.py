@@ -169,8 +169,34 @@ def make_dataset(episodes, config):
 def make_env(config, logger, mode, train_eps, eval_eps):
   suite, task = config.task.split('_', 1)
   if suite == 'dmc':
-    env = wrappers.DeepMindControl(task, config.action_repeat, config.size)
+    img_source = None
+    resource_files = None
+    reset_bg = False
+        # if suite == "dmc_static":
+        #     img_source = "images"
+        #     resource_files = "../data/imagenet/*.JPEG"
+        # elif suite == "dmc_static_reset":
+        #     img_source = "images"
+        #     resource_files = "../data/imagenet/*.JPEG"
+        #     reset_bg = True
+        # elif suite == "dmc_distracted":
+    img_source = "video"
+    resource_files = "../kinetics-downloader/dataset/train/driving_car/*.mp4"
+
+    # env = wrappers.DeepMindControl(task, config.action_repeat, config.size)
+    env = wrappers.DeepMindControlNoisy(
+        task,
+        config.action_repeat,
+        config.size,
+        img_source=img_source,
+        resource_files=resource_files,
+        total_frames=1000,
+        grayscale=config.grayscale,
+        train_eps=train_eps,
+    )
     env = wrappers.NormalizeActions(env)
+
+
   elif suite == 'atari':
     env = wrappers.Atari(
         task, config.action_repeat, config.size,
