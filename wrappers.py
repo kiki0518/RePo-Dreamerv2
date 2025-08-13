@@ -169,7 +169,7 @@ from utils import make_img_source  # RePo's background tool
 
 class DeepMindControlNoisy(DeepMindControl):
     def __init__(self, *args, img_source=None, resource_files=None, total_frames=None,
-                 reset_bg=False, grayscale=False, train_eps=0, noise_std=0.0, **kwargs):
+                 reset_bg=False, grayscale=True, train_eps=0, noise_std=0.0, **kwargs):
         super().__init__(*args, **kwargs)
 
         """
@@ -194,7 +194,7 @@ class DeepMindControlNoisy(DeepMindControl):
                 img_shape=self._size,  # same as the original deepmind control size
                 resource_files=resource_files,
                 total_frames=total_frames,
-                grayscale=False,
+                grayscale=grayscale
             )
 
     def reset(self):
