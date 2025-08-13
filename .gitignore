@@ -1,6 +1,6 @@
 # 
 run.sh
-
+kinetics-downloader/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
