@@ -191,7 +191,7 @@ def make_env(config, logger, mode, train_eps, eval_eps):
         img_source=img_source,
         resource_files=resource_files,
         total_frames=1000,
-        grayscale=False,
+        grayscale=True,
         train_eps=train_eps,
     )
     env = wrappers.NormalizeActions(env)
