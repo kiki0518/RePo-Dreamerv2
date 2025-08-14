@@ -219,7 +219,7 @@ class DeepMindControlNoisy(DeepMindControl):
 
         if self._img_source is not None:
             target_color = np.array([54, 81, 109], dtype=np.uint8)
-            tol = 20  # tolerance for color similarity
+            tol = 30  # tolerance for color similarity
             bg = self._bg_source.get_image()
 
             # Binary search to find the first row containing target color
