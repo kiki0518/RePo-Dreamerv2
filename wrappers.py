@@ -216,14 +216,44 @@ class DeepMindControlNoisy(DeepMindControl):
         #     bg = self._bg_source.get_image()
         #     img[mask] = bg[mask]
 
+
         if self._img_source is not None:
-          # build a mask to replace the background w/ the target color
-          target_color = np.array([45, 68, 90], dtype=np.uint8)
-          mask = np.all(img == target_color, axis=-1)  # shape (H, W)
+            target_color = np.array([63, 95, 128], dtype=np.uint8)
+            tol = 10  # tolerance for color similarity
+            bg = self._bg_source.get_image()
 
-          bg = self._bg_source.get_image()
-          img[mask] = bg[mask]
+            # Binary search to find the first row containing target color
+            top, bottom = 0, img.shape[0] - 1
+            replace_row = img.shape[0]  # default: do not replace any row
 
+            while top <= bottom:
+                mid = (top + bottom) // 2
+                row = img[mid]
+                diff = np.linalg.norm(row.astype(np.float32) - target_color, axis=-1)
+
+                if np.any(diff <= tol):
+                    # Found a matching row, search higher rows to find first occurrence
+                    replace_row = mid + 1
+                    bottom = mid - 1
+                else:
+                    # No match in this row, search lower rows
+                    top = mid + 1
+
+            # Replace all rows above the detected row with background
+            target_color2 = np.array([45, 68, 90], dtype=np.uint8)
+
+            if replace_row > 0:
+               # Additional filter: only replace pixels with red value < 45
+                red_mask = img[:replace_row, :, 0] < 45
+                img[:replace_row][red_mask] = bg[:replace_row][red_mask]
+
+            # -------- Second replacement: replace pixels matching target_color2 --------
+            diff2 = np.linalg.norm(img.astype(np.float32) - target_color2, axis=-1)
+            mask2 = diff2 <= 100
+            img[mask2] = bg[mask2]
+
+
+        # Add Gaussian noise if specified
         if self._noise_std > 0:
             img = img.astype(np.float32) + np.random.normal(
                 0, self._noise_std, img.shape
