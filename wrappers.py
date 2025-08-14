@@ -262,7 +262,7 @@ class DeepMindControlNoisy(DeepMindControl):
                 row = img[mid]
                 diff = np.linalg.norm(row.astype(np.float32) - target_color2, axis=-1)
 
-                if np.any((row[:, 0] > 20)):
+                if np.any((row[:, 0] > 30)):
                     # Found a matching row, search lower rows to find first occurrence
                     top = mid + 1
                 else:
