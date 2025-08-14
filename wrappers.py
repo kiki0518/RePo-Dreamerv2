@@ -240,18 +240,37 @@ class DeepMindControlNoisy(DeepMindControl):
                     top = mid + 1
 
             # Replace all rows above the detected row with background
-            target_color2 = np.array([45, 68, 90], dtype=np.uint8)
+            target_color2 = np.array([19, 27, 35], dtype=np.uint8)
 
             if replace_row > 0:
-               # Additional filter: only replace pixels with red value < 45
-                red_mask = img[:replace_row, :, 0] < 55
+               # Additional filter: only replace pixels with red value < 65
+                red_mask = img[:replace_row, :, 0] < 65
                 img[:replace_row][red_mask] = bg[:replace_row][red_mask]
 
                 # -------- Second replacement: replace pixels matching target_color2 --------
                 # diff2 = np.linalg.norm(img.astype(np.float32) - target_color2, axis=-1)
                 # mask2 = diff2 <= 100
        #         img[mask2] = bg[mask2]
-       
+
+            top = replace_row
+            bottom = img.shape[0] - 1
+            target_color2 = np.array([19, 27, 35], dtype=np.uint8)
+            tol = 20  # tolerance for color similarity
+            while top <= bottom:
+                mid = (top + bottom) // 2
+                row = img[mid]
+                diff = np.linalg.norm(row.astype(np.float32) - target_color2, axis=-1)
+
+                if np.any(diff <= tol):
+                    # Found a matching row, search higher rows to find first occurrence
+                    replace_row = mid + 1
+                    bottom = mid - 1
+                else:
+                    # No match in this row, search lower rows
+                    top = mid + 1
+
+            if replace_row > 0:
+                img[replace_row:] = bg[replace_row:]
 
         # Add Gaussian noise if specified
         if self._noise_std > 0:
