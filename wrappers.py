@@ -255,13 +255,13 @@ class DeepMindControlNoisy(DeepMindControl):
             top = replace_row
             bottom = img.shape[0] - 1
             target_color2 = np.array([19, 27, 35], dtype=np.uint8)
-            tol = 20  # tolerance for color similarity
+            tol = 40  # tolerance for color similarity
             while top <= bottom:
                 mid = (top + bottom) // 2
                 row = img[mid]
                 diff = np.linalg.norm(row.astype(np.float32) - target_color2, axis=-1)
 
-                if np.any(diff <= tol):
+                if np.any((diff <= tol)|(row[:, 0] <= 20)):
                     # Found a matching row, search higher rows to find first occurrence
                     replace_row = mid + 1
                     bottom = mid - 1
