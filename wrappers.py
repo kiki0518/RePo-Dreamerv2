@@ -261,15 +261,14 @@ class DeepMindControlNoisy(DeepMindControl):
                 row = img[mid]
                 diff = np.linalg.norm(row.astype(np.float32) - target_color2, axis=-1)
 
-                if np.any((diff <= tol)|(row[:, 0] <= 20)):
+                if np.any((diff <= tol)|(row[:, 0] > 20)):
                     # Found a matching row, search higher rows to find first occurrence
+                    top = mid + 1
+                else:
                     replace_row = mid + 1
                     bottom = mid - 1
-                else:
-                    # No match in this row, search lower rows
-                    top = mid + 1
 
-            if replace_row > 0:
+            if replace_row > 0 and replace_row < img.shape[0]:
                 img[replace_row:] = bg[replace_row:]
 
         # Add Gaussian noise if specified
