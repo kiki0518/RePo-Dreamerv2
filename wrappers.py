@@ -219,7 +219,7 @@ class DeepMindControlNoisy(DeepMindControl):
 
         if self._img_source is not None:
             target_color = np.array([63, 95, 128], dtype=np.uint8)
-            tol = 10  # tolerance for color similarity
+            tol = 18.5  # tolerance for color similarity
             bg = self._bg_source.get_image()
 
             # Binary search to find the first row containing target color
@@ -247,10 +247,10 @@ class DeepMindControlNoisy(DeepMindControl):
                 red_mask = img[:replace_row, :, 0] < 45
                 img[:replace_row][red_mask] = bg[:replace_row][red_mask]
 
-            # -------- Second replacement: replace pixels matching target_color2 --------
-            diff2 = np.linalg.norm(img.astype(np.float32) - target_color2, axis=-1)
-            mask2 = diff2 <= 100
-            img[mask2] = bg[mask2]
+                # -------- Second replacement: replace pixels matching target_color2 --------
+                diff2 = np.linalg.norm(img.astype(np.float32) - target_color2, axis=-1)
+                mask2 = diff2 <= 100
+                img[mask2] = bg[mask2]
 
 
         # Add Gaussian noise if specified
