@@ -169,22 +169,22 @@ def make_dataset(episodes, config):
 def make_env(config, logger, mode, train_eps, eval_eps):
   suite, task = config.task.split('_', 1)
   if suite == 'dmc':
-    img_source = None
-    resource_files = None
-    reset_bg = False
-        # if suite == "dmc_static":
-        #     img_source = "images"
-        #     resource_files = "../data/imagenet/*.JPEG"
-        # elif suite == "dmc_static_reset":
-        #     img_source = "images"
-        #     resource_files = "../data/imagenet/*.JPEG"
-        #     reset_bg = True
-        # elif suite == "dmc_distracted":
-    img_source = "video"
-    resource_files = "../kinetics-downloader/dataset/train/driving_car/*.mp4"
-
-    # env = wrappers.DeepMindControl(task, config.action_repeat, config.size)
-    env = wrappers.DeepMindControlNoisy(
+    
+    if(config.noisy):
+      img_source = None
+      resource_files = None
+      reset_bg = False
+          # if suite == "dmc_static":
+          #     img_source = "images"
+          #     resource_files = "../data/imagenet/*.JPEG"
+          # elif suite == "dmc_static_reset":
+          #     img_source = "images"
+          #     resource_files = "../data/imagenet/*.JPEG"
+          #     reset_bg = True
+          # elif suite == "dmc_distracted":
+      img_source = "video"
+      resource_files = "../kinetics-downloader/dataset/train/driving_car/*.mp4"
+      env = wrappers.DeepMindControlNoisy(
         task,
         config.action_repeat,
         config.size,
@@ -193,7 +193,10 @@ def make_env(config, logger, mode, train_eps, eval_eps):
         total_frames=1000,
         grayscale=True,
         train_eps=train_eps,
-    )
+     )
+    else:
+      env = wrappers.DeepMindControl(task, config.action_repeat, config.size)
+
     env = wrappers.NormalizeActions(env)
 
 
@@ -332,6 +335,8 @@ def main(config):
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--configs', nargs='+', required=True)
+  parser.add_argument('--noisy', action='store_true', help='Enable noisy background and noise injection')
+    
   args, remaining = parser.parse_known_args()
   configs = yaml.safe_load(
       (pathlib.Path(sys.argv[0]).parent / 'configs.yaml').read_text())
@@ -342,4 +347,9 @@ if __name__ == '__main__':
   for key, value in sorted(defaults.items(), key=lambda x: x[0]):
     arg_type = tools.args_type(value)
     parser.add_argument(f'--{key}', type=arg_type, default=arg_type(value))
-  main(parser.parse_args(remaining))
+  
+  # parser.parse_args(remaining)
+  parsed_args = parser.parse_args(remaining)
+  parsed_args.noisy = args.noisy
+  
+  main(parsed_args)
