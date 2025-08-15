@@ -219,7 +219,7 @@ class DeepMindControlNoisy(DeepMindControl):
 
         if self._img_source is not None:
             target_color = np.array([54, 81, 109], dtype=np.uint8)
-            tol = 20  # tolerance for color similarity
+            tol = 30  # tolerance for color similarity
             bg = self._bg_source.get_image()
 
             # Binary search to find the first row containing target color
@@ -262,7 +262,7 @@ class DeepMindControlNoisy(DeepMindControl):
                 row = img[mid]
                 diff = np.linalg.norm(row.astype(np.float32) - target_color2, axis=-1)
 
-                if np.any((row[:, 0] > 20)):
+                if np.any((row[:, 0] > 30)):
                     # Found a matching row, search lower rows to find first occurrence
                     top = mid + 1
                 else:
