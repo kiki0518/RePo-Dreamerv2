@@ -235,7 +235,7 @@ atari:
 dmc:
 
   # General
-  task: 'dmc_walker_walk'
+  task: 'cup_catch'# 'dmc_walker_walk'
   steps: 1e7
   eval_every: 1e4
   log_every: 1e4
