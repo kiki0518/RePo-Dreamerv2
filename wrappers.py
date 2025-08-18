@@ -110,6 +110,7 @@ class DeepMindControl:
 
   def __init__(self, name, action_repeat=1, size=(64, 64), camera=None):
     domain, task = name.split('_', 1)
+    self.task = task 
     if domain == 'cup':  # Only domain with multiple words.
       domain = 'ball_in_cup'
     if isinstance(domain, str):
@@ -187,6 +188,7 @@ class DeepMindControlNoisy(DeepMindControl):
         self._img_source = img_source
         self._reset_bg = reset_bg
         self._noise_std = noise_std
+        
 
         if img_source is not None:
             self._bg_source = make_img_source(
@@ -207,15 +209,87 @@ class DeepMindControlNoisy(DeepMindControl):
         obs = dict(time_step.observation)
         img = self.render()
 
-        # the original method to replace the background
-        # if self._img_source is not None:
-        #     mask = np.logical_and(
-        #         (img[:, :, 2] > img[:, :, 1]),
-        #         (img[:, :, 2] > img[:, :, 0])
-        #     )
-        #     bg = self._bg_source.get_image()
-        #     img[mask] = bg[mask]
+        if task == "walker_walk" or task == "walker_stand":
+            # ---------- Walker-specific background replacement ----------
+            img = self._apply_walker_background_replacement(img)
+        elif task == "cheetah_run":
+            # ---------- Cheetah-specific background replacement ----------
+            img = self._apply_cheetah_background_replacement(img)
 
+          
+
+        # Add Gaussian noise if specified
+        if self._noise_std > 0:
+            img = img.astype(np.float32) + np.random.normal(
+                0, self._noise_std, img.shape
+            )
+            img = np.clip(img, 0, 255).astype(np.uint8)
+
+        obs['image'] = img
+        return obs
+
+    def step(self, action):
+        """ change the step method to use the new _get_obs """
+        reward = 0
+        for _ in range(self._action_repeat):
+            time_step = self._env.step(action)
+            reward += time_step.reward or 0
+            if time_step.last():
+                break
+        obs = self._get_obs(time_step)
+        done = time_step.last()
+        info = {'discount': np.array(time_step.discount, np.float32)}
+        return obs, reward, done, info
+    
+    def _apply_walker_background_replacement(self, img):
+      """Apply binary-search-based replacement logic for walker tasks."""
+
+      if self._img_source is not None:
+          bg = self._bg_source.get_image()
+
+      target_color = np.array([54, 81, 109], dtype=np.uint8)
+      tol = 30
+      bg = self._bg_source.get_image()
+
+      # First binary search
+      top, bottom = 0, img.shape[0] - 1
+      replace_row = img.shape[0]
+      while top <= bottom:
+          mid = (top + bottom) // 2
+          row = img[mid]
+          diff = np.linalg.norm(row.astype(np.float32) - target_color, axis=-1)
+          if np.any(diff <= tol):
+              replace_row = mid + 1
+              bottom = mid - 1
+          else:
+              top = mid + 1
+
+      # Apply first replacement
+      if replace_row > 0:
+          red_mask = img[:replace_row, :, 0] < 65
+          img[:replace_row][red_mask] = bg[:replace_row][red_mask]
+
+      # Second binary search for target_color2
+      top = replace_row
+      bottom = img.shape[0] - 1
+      target_color2 = np.array([19, 27, 35], dtype=np.uint8)
+      tol = 40
+      replace_row = img.shape[0]
+      while top <= bottom:
+          mid = (top + bottom) // 2
+          row = img[mid]
+          if np.any((row[:, 0] > 30)):
+              top = mid + 1
+          else:
+              replace_row = mid + 1
+              bottom = mid - 1
+
+      if replace_row > 0 and replace_row < img.shape[0]:
+          img[replace_row:] = bg[replace_row:]
+
+      return img
+    
+    def _apply_cheetah_background_replacement(self, img):
         if self._img_source is not None:
             bg = self._bg_source.get_image()
 
@@ -242,28 +316,7 @@ class DeepMindControlNoisy(DeepMindControl):
                 red_mask = img[:replace_row, :, 0] < 90
                 img[:replace_row][red_mask] = bg[:replace_row][red_mask]
 
-        # Add Gaussian noise if specified
-        if self._noise_std > 0:
-            img = img.astype(np.float32) + np.random.normal(
-                0, self._noise_std, img.shape
-            )
-            img = np.clip(img, 0, 255).astype(np.uint8)
-
-        obs['image'] = img
-        return obs
-
-    def step(self, action):
-        """ change the step method to use the new _get_obs """
-        reward = 0
-        for _ in range(self._action_repeat):
-            time_step = self._env.step(action)
-            reward += time_step.reward or 0
-            if time_step.last():
-                break
-        obs = self._get_obs(time_step)
-        done = time_step.last()
-        info = {'discount': np.array(time_step.discount, np.float32)}
-        return obs, reward, done, info
+        return img
 
 class Atari:
 
