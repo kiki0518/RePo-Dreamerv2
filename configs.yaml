@@ -24,7 +24,7 @@ defaults:
   beta_lr: 1e-4
 
   # Environment
-  task: 'dmc_walker_walk'
+  task: 'dmc_cheetah_run'
   size: [64, 64]
   envs: 1
   action_repeat: 2
@@ -236,7 +236,7 @@ atari:
 dmc:
 
   # General
-  task: 'cup_catch' # 'dmc_walker_walk'
+  task: 'dmc_cheetah_run' # 'dmc_walker_walk'
   steps: 1e7
   eval_every: 1e4
   log_every: 1e4
