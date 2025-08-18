@@ -216,10 +216,7 @@ class DeepMindControlNoisy(DeepMindControl):
         #     bg = self._bg_source.get_image()
         #     img[mask] = bg[mask]
 
-
         if self._img_source is not None:
-            target_color = np.array([54, 81, 109], dtype=np.uint8)
-            tol = 30  # tolerance for color similarity
             bg = self._bg_source.get_image()
 
             # Binary search to find the first row containing target color
@@ -229,9 +226,8 @@ class DeepMindControlNoisy(DeepMindControl):
             while top <= bottom:
                 mid = (top + bottom) // 2
                 row = img[mid]
-                diff = np.linalg.norm(row.astype(np.float32) - target_color, axis=-1)
 
-                if np.any(diff <= tol):
+                if np.any(img[:mid, :, 0] < 25):
                     # Found a matching row, search higher rows to find first occurrence
                     replace_row = mid + 1
                     bottom = mid - 1
@@ -240,37 +236,11 @@ class DeepMindControlNoisy(DeepMindControl):
                     top = mid + 1
 
             # Replace all rows above the detected row with background
-            target_color2 = np.array([19, 27, 35], dtype=np.uint8)
 
             if replace_row > 0:
-               # Additional filter: only replace pixels with red value < 65
-                red_mask = img[:replace_row, :, 0] < 65
+               # Additional filter: only replace pixels with red value < 90
+                red_mask = img[:replace_row, :, 0] < 90
                 img[:replace_row][red_mask] = bg[:replace_row][red_mask]
-
-                # -------- Second replacement: replace pixels matching target_color2 --------
-                # diff2 = np.linalg.norm(img.astype(np.float32) - target_color2, axis=-1)
-                # mask2 = diff2 <= 100
-       #         img[mask2] = bg[mask2]
-
-            top = replace_row
-            bottom = img.shape[0] - 1
-            target_color2 = np.array([19, 27, 35], dtype=np.uint8)
-            tol = 40  # tolerance for color similarity
-            replace_row = img.shape[0]  # default: do not replace any row
-            while top <= bottom:
-                mid = (top + bottom) // 2
-                row = img[mid]
-                diff = np.linalg.norm(row.astype(np.float32) - target_color2, axis=-1)
-
-                if np.any((row[:, 0] > 30)):
-                    # Found a matching row, search lower rows to find first occurrence
-                    top = mid + 1
-                else:
-                    replace_row = mid + 1
-                    bottom = mid - 1
-
-            if replace_row > 0 and replace_row < img.shape[0]:
-                img[replace_row:] = bg[replace_row:]
 
         # Add Gaussian noise if specified
         if self._noise_std > 0:
