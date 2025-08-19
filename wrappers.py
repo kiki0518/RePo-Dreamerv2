@@ -209,15 +209,12 @@ class DeepMindControlNoisy(DeepMindControl):
         obs = dict(time_step.observation)
         img = self.render()
 
-        if task == "walker_walk" or task == "walker_stand":
+        if self.task == "walker_walk" or self.task == "walker_stand":
             # ---------- Walker-specific background replacement ----------
             img = self._apply_walker_background_replacement(img)
-        elif task == "cheetah_run":
+        elif self.task == "cheetah_run":
             # ---------- Cheetah-specific background replacement ----------
             img = self._apply_cheetah_background_replacement(img)
-
-          
-
         # Add Gaussian noise if specified
         if self._noise_std > 0:
             img = img.astype(np.float32) + np.random.normal(
