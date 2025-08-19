@@ -42,8 +42,8 @@ class RePoWorldModel(models.WorldModel):
                 dist_post_detached = torchd.independent.Independent(tools.OneHotDist(logits=dist_post.base_dist.logits.detach()), 1)
                 dist_prior_detached = torchd.independent.Independent(tools.OneHotDist(logits=dist_prior.base_dist.logits.detach()), 1)
 
-                kl_prior = kl_divergence(dist_post_detached, dist_prior).mean()
-                kl_post = kl_divergence(dist_post, dist_prior_detached).mean()
+                kl_prior = torchd.kl.kl_divergence(dist_post_detached, dist_prior).mean()
+                kl_post = torchd.kl.kl_divergence(dist_post, dist_prior_detached).mean()
 
                 kl_alpha = self._config.prior_train_steps / (1 + self._config.prior_train_steps)
                 kl_value = kl_alpha * kl_prior + (1 - kl_alpha) * kl_post
