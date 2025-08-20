@@ -170,7 +170,7 @@ def make_env(config, logger, mode, train_eps, eval_eps):
   suite, task = config.task.split('_', 1)
   if suite == 'dmc':
     
-    if(config.noisy):
+    if(suite == 'dmc' or config.noisy):
       img_source = None
       resource_files = None
       reset_bg = False
