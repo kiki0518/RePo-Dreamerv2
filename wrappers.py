@@ -266,23 +266,24 @@ class DeepMindControlNoisy(DeepMindControl):
           red_mask = img[:replace_row, :, 0] < 65
           img[:replace_row][red_mask] = bg[:replace_row][red_mask]
 
-      # Second binary search for target_color2
-      top = replace_row
-      bottom = img.shape[0] - 1
-      target_color2 = np.array([19, 27, 35], dtype=np.uint8)
-      tol = 40
-      replace_row = img.shape[0]
-      while top <= bottom:
-          mid = (top + bottom) // 2
-          row = img[mid]
-          if np.any((row[:, 0] > 30)):
-              top = mid + 1
-          else:
-              replace_row = mid + 1
-              bottom = mid - 1
+      if self.task == "walker_walk":
+        # Second binary search for target_color2
+        top = replace_row
+        bottom = img.shape[0] - 1
+        target_color2 = np.array([19, 27, 35], dtype=np.uint8)
+        tol = 40
+        replace_row = img.shape[0]
+        while top <= bottom:
+            mid = (top + bottom) // 2
+            row = img[mid]
+            if np.any((row[:, 0] > 30)):
+                top = mid + 1
+            else:
+                replace_row = mid + 1
+                bottom = mid - 1
 
-      if replace_row > 0 and replace_row < img.shape[0]:
-          img[replace_row:] = bg[replace_row:]
+        if replace_row > 0 and replace_row < img.shape[0]:
+            img[replace_row:] = bg[replace_row:]
 
       return img
     
@@ -312,6 +313,23 @@ class DeepMindControlNoisy(DeepMindControl):
                # Additional filter: only replace pixels with red value < 90
                 red_mask = img[:replace_row, :, 0] < 90
                 img[:replace_row][red_mask] = bg[:replace_row][red_mask]
+            
+             # Second binary search for target_color2
+            top = replace_row
+            bottom = img.shape[0] - 1
+            replace_row = img.shape[0]
+            while top <= bottom:
+                mid = (top + bottom) // 2
+                row = img[mid]
+                if np.any((row[:, 0] < 25)):
+                    top = mid + 1
+                else:
+                    replace_row = mid + 1
+                    bottom = mid - 1
+
+            if replace_row > 0 and replace_row < img.shape[0]:
+              img[replace_row:] = bg[replace_row:]
+            
 
         return img
 
